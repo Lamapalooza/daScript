@@ -758,8 +758,10 @@ namespace das {
             if (!passType) {
                 return false;
             }
-            // explicit const mast match
-            if ( argType->explicitConst && (argType->constant != passType->constant) ) {
+            if ( argType->explicitConst && (argType->constant != passType->constant) ) {    // explicit const mast match
+                return false;
+            }
+            if ( argType->explicitRef && (argType->ref != passType->ref) ) {                // explicit ref match
                 return false;
             }
             if ( argType->baseType==Type::anyArgument ) {
@@ -3096,6 +3098,9 @@ namespace das {
                 } else if ( expr->trait=="is_pointer" ) {
                     reportAstChanged();
                     return make_smart<ExprConstBool>(expr->at, expr->typeexpr->isPointer());
+                } else if ( expr->trait=="is_smart_ptr" ) {
+                    reportAstChanged();
+                    return make_smart<ExprConstBool>(expr->at, expr->typeexpr->smartPtr && expr->typeexpr->isPointer());
                 } else if ( expr->trait=="is_iterator" ) {
                     reportAstChanged();
                     return make_smart<ExprConstBool>(expr->at, expr->typeexpr->isGoodIteratorType());
@@ -7564,7 +7569,7 @@ namespace das {
                 auto initl = static_cast<ExprMakeLocal *>(init);
                 expr->initAllFields &= initl->initAllFields;
             }
-            return Expression::autoDereference( Visitor::visitMakeArrayIndex(expr,index,init,last) );
+            return Visitor::visitMakeArrayIndex(expr,index,init,last);
         }
         virtual ExpressionPtr visit ( ExprMakeArray * expr ) override {
             if ( expr->makeType && expr->makeType->isExprType() ) {
